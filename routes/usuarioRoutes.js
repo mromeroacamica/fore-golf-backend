@@ -12,5 +12,6 @@ router.post("/", registrar);
 router.post("/login", autenticar);
 router.get("/confirmar/:token", confirmar);
 router.post("/olvide-password", olvidePassword);
+router.get("/olvide-password/:token", olvidePassword);
 
 export default router;
