@@ -88,5 +88,6 @@ const olvidePassword = async (req, res) => {
     console.log(error);
   }
 };
+const comprobarToken = async (req, res) => {};
 
-export { registrar, autenticar, confirmar, olvidePassword };
+export { registrar, autenticar, confirmar, olvidePassword, comprobarToken };
