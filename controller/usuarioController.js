@@ -35,12 +35,12 @@ const autenticar = async (req, res) => {
   //Comprobar
   if (await usuario.comprobarPassword(password)) {
     const usuarioToken = {
-      _id: usuario.id,
+      id: usuario.id,
       nombre: usuario.nombre,
       email: usuario.email,
     };
     res.json({
-      _id: usuario.id,
+      id: usuario.id,
       nombre: usuario.nombre,
       email: usuario.email,
       token: generarJWT(usuarioToken),
@@ -51,7 +51,6 @@ const autenticar = async (req, res) => {
   }
 };
 const confirmar = async (req, res) => {
-  console.log("routing dinamico", req.params);
   const { token } = req.params;
   const usuarioConfirmar = await Usuario.findOne({ token });
   if (!usuarioConfirmar) {
@@ -68,7 +67,6 @@ const confirmar = async (req, res) => {
     const e = new Error("Token no válido.");
     return res.status(403).json({ msg: e.message, error: error });
   }
-  console.log(usuarioConfirmar);
 };
 const olvidePassword = async (req, res) => {
   const { email } = req.body;
@@ -88,6 +86,42 @@ const olvidePassword = async (req, res) => {
     console.log(error);
   }
 };
-const comprobarToken = async (req, res) => {};
+const comprobarToken = async (req, res) => {
+  const { token } = req.params;
+  const tokenValido = await Usuario.findOne({ token });
+  if (tokenValido) {
+    res.status(200).json({ msg: "Token válido." });
+  } else {
+    const error = new Error("Token no válido.");
+    return res.status(404).json({ msg: error.message });
+  }
+};
+const nuevoPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+  const usuario = await Usuario.findOne({ token });
+  if (usuario) {
+    usuario.password = password;
+    usuario.token = "";
+    usuario.save();
+    res.status(200).json({ msg: "Password modificado correctamente." });
+  } else {
+    const error = new Error("Token no válido.");
+    return res.status(404).json({ msg: error.message });
+  }
+};
 
-export { registrar, autenticar, confirmar, olvidePassword, comprobarToken };
+const perfil = async (req, res) => {
+  const { usuario } = req;
+  res.json(usuario);
+};
+
+export {
+  registrar,
+  autenticar,
+  confirmar,
+  olvidePassword,
+  comprobarToken,
+  nuevoPassword,
+  perfil,
+};
