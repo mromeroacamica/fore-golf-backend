@@ -7,7 +7,7 @@ const proyectosSchema = mongoose.Schema(
       trim: true,
       required: true,
     },
-    description: {
+    descripcion: {
       type: String,
       trim: true,
       required: true,
@@ -38,3 +38,4 @@ const proyectosSchema = mongoose.Schema(
 );
 
 const Proyecto = mongoose.model("Proyecto", proyectosSchema);
+export default Proyecto;
