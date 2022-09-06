@@ -41,6 +41,10 @@ const usuarioSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Club",
     },
+    clubUser: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

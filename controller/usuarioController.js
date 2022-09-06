@@ -22,29 +22,39 @@ const registrar = async (req, res) => {
 const editarUsuario = async (req, res) => {
   //Evitar registros duplicados
   const { id } = req.params;
-  const usuario = await Usuario.findById(id);
+  const { usuario } = req;
+  if (id.toString() !== usuario._id.toString() && !usuario.clubUser) {
+    const error = new Error("No tienes acceso a este usuario.");
+    return res.status(403).json({ msg: error.message });
+  }
+  const usuarioToEdit = await Usuario.findById(id);
+
+  if (usuarioToEdit.clubUser) {
+    const error = new Error("No tienes acceso a este usuario.");
+    return res.status(403).json({ msg: error.message });
+  }
   const { email, matricula } = req.body;
-  if (usuario.matricula !== matricula) {
+  if (usuarioToEdit.matricula !== matricula) {
     const matriculaYaExiste = await Usuario.findOne({ matricula });
     if (matriculaYaExiste) {
       const error = new Error("Matricula ya registrado");
       return res.status(400).json({ msg: error.message });
     }
   }
-  if (usuario.email !== email) {
+  if (usuarioToEdit.email !== email) {
     const existeUsuario = await Usuario.findOne({ email });
     if (existeUsuario) {
       const error = new Error("Correo ya registrado");
       return res.status(400).json({ msg: error.message });
     }
   }
-  usuario.nombre = req.body.nombre || usuario.nombre;
-  usuario.apellido = req.body.apellido || usuario.apellido;
-  usuario.email = req.body.email || usuario.email;
-  usuario.matricula = req.body.matricula || usuario.matricula;
-  usuario.club = req.body.club || usuario.club;
+  usuarioToEdit.nombre = req.body.nombre || usuarioToEdit.nombre;
+  usuarioToEdit.apellido = req.body.apellido || usuarioToEdit.apellido;
+  usuarioToEdit.email = req.body.email || usuarioToEdit.email;
+  usuarioToEdit.matricula = req.body.matricula || usuarioToEdit.matricula;
+  usuarioToEdit.club = req.body.club || usuarioToEdit.club;
   try {
-    const usuarioAlmacenado = await usuario.save();
+    const usuarioAlmacenado = await usuarioToEdit.save();
     res.json(usuarioAlmacenado);
   } catch (error) {
     console.log(error);
