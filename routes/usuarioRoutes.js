@@ -7,6 +7,7 @@ import {
   comprobarToken,
   nuevoPassword,
   perfil,
+  editarUsuario,
 } from "../controller/usuarioController.js";
 import checkAuth from "../middleware/checkAuth.js";
 const router = express.Router();
@@ -19,5 +20,6 @@ router.post("/olvide-password", olvidePassword);
 router.route("/olvide-password/:token").get(comprobarToken).post(nuevoPassword);
 
 router.get("/perfil", checkAuth, perfil);
+router.put("/editar/:id", checkAuth, editarUsuario);
 
 export default router;

@@ -19,6 +19,37 @@ const registrar = async (req, res) => {
     console.log(error);
   }
 };
+const editarUsuario = async (req, res) => {
+  //Evitar registros duplicados
+  const { id } = req.params;
+  const usuario = await Usuario.findById(id);
+  const { email, matricula } = req.body;
+  if (usuario.matricula !== matricula) {
+    const matriculaYaExiste = await Usuario.findOne({ matricula });
+    if (matriculaYaExiste) {
+      const error = new Error("Matricula ya registrado");
+      return res.status(400).json({ msg: error.message });
+    }
+  }
+  if (usuario.email !== email) {
+    const existeUsuario = await Usuario.findOne({ email });
+    if (existeUsuario) {
+      const error = new Error("Correo ya registrado");
+      return res.status(400).json({ msg: error.message });
+    }
+  }
+  usuario.nombre = req.body.nombre || usuario.nombre;
+  usuario.apellido = req.body.apellido || usuario.apellido;
+  usuario.email = req.body.email || usuario.email;
+  usuario.matricula = req.body.matricula || usuario.matricula;
+  usuario.club = req.body.club || usuario.club;
+  try {
+    const usuarioAlmacenado = await usuario.save();
+    res.json(usuarioAlmacenado);
+  } catch (error) {
+    console.log(error);
+  }
+};
 const autenticar = async (req, res) => {
   const { email, password } = req.body;
   //comprobar si el usuario existe
@@ -124,4 +155,5 @@ export {
   comprobarToken,
   nuevoPassword,
   perfil,
+  editarUsuario,
 };
