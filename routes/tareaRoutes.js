@@ -5,12 +5,15 @@ import {
   actualizarTarea,
   eliminarTarea,
   cambiarEstado,
+  obtenerTareas,
 } from "../controller/tareaController.js";
 import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router();
 
 router.post("/", checkAuth, agregarTarea);
+router.get("/", checkAuth, obtenerTareas);
+
 router
   .route("/:id")
   .get(checkAuth, obtenerTarea)
