@@ -1,19 +1,64 @@
 import Usuario from "../models/Usuario.js";
 import generarId from "../helpers/generarId.js";
 import generarJWT from "../helpers/generarJWT.js";
+import Club from "../models/Club.js";
 
 const registrar = async (req, res) => {
   //Evitar registros duplicados
-  const { email } = req.body;
+  const { email, club } = req.body;
   const existeUsuario = await Usuario.findOne({ email });
+  const existeClub = await Club.findById(club);
   if (existeUsuario) {
     const error = new Error("Usuario ya registrado");
+    return res.status(400).json({ msg: error.message });
+  }
+
+  if (!existeClub && club) {
+    const error = new Error("Club no existente.");
     return res.status(400).json({ msg: error.message });
   }
   try {
     const usuario = new Usuario(req.body);
     usuario.token = generarId();
     const usuarioAlmacenado = await usuario.save();
+    res.json(usuarioAlmacenado);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const editarUsuario = async (req, res) => {
+  //Evitar registros duplicados
+  const { id } = req.params;
+  const { usuario } = req;
+  if (id.toString() !== usuario._id.toString() && !usuario.clubUser) {
+    const error = new Error("No tienes acceso a este usuario.");
+    return res.status(403).json({ msg: error.message });
+  }
+  const usuarioToEdit = await Usuario.findById(id);
+
+  const { email, matricula } = req.body;
+  if (usuarioToEdit.matricula !== matricula) {
+    const matriculaYaExiste = await Usuario.findOne({ matricula });
+    if (matriculaYaExiste) {
+      const error = new Error("Matricula ya registrada");
+      return res.status(400).json({ msg: error.message });
+    }
+  }
+  if (usuarioToEdit.email !== email) {
+    const existeUsuario = await Usuario.findOne({ email });
+    if (existeUsuario) {
+      const error = new Error("Correo ya registrado");
+      return res.status(400).json({ msg: error.message });
+    }
+  }
+
+  usuarioToEdit.nombre = req.body.nombre || usuarioToEdit.nombre;
+  usuarioToEdit.apellido = req.body.apellido || usuarioToEdit.apellido;
+  usuarioToEdit.email = req.body.email || usuarioToEdit.email;
+  usuarioToEdit.matricula = req.body.matricula || usuarioToEdit.matricula;
+  usuarioToEdit.club = req.body.club || usuarioToEdit.club;
+  try {
+    const usuarioAlmacenado = await usuarioToEdit.save();
     res.json(usuarioAlmacenado);
   } catch (error) {
     console.log(error);
@@ -124,4 +169,5 @@ export {
   comprobarToken,
   nuevoPassword,
   perfil,
+  editarUsuario,
 };

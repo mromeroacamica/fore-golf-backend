@@ -8,6 +8,11 @@ const usuarioSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+    apellido: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     password: {
       type: String,
       required: true,
@@ -19,10 +24,24 @@ const usuarioSchema = mongoose.Schema(
       trim: true,
       unique: true,
     },
+    matricula: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     token: {
       type: String,
     },
     confirmado: {
+      type: Boolean,
+      default: false,
+    },
+    club: {
+      type: String,
+      default: "",
+      required: false,
+    },
+    clubUser: {
       type: Boolean,
       default: false,
     },

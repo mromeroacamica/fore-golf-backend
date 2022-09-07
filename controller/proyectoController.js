@@ -3,7 +3,12 @@ import Tarea from "../models/Tarea.js";
 import Usuario from "../models/Usuario.js";
 
 const obtenerProyectos = async (req, res) => {
-  const proyectos = await Proyecto.find().where("creador").equals(req.usuario);
+  const proyectos = await Proyecto.find({
+    $or: [
+      { colaboradores: { $in: req.usuario } },
+      { creador: { $in: req.usuario } },
+    ],
+  });
   res.json(proyectos);
 };
 
@@ -100,14 +105,42 @@ const agregarColaboradores = async (req, res) => {
     const error = new Error("Proyecto no encontrado.");
     return res.status(404).json({ msg: error.message });
   }
-  if (proyecto.creador.toString() !== req.usuario._id.toString()) {
+  if (existeProyecto.creador.toString() !== req.usuario._id.toString()) {
     const error = new Error("Sin permisos de acceso.");
     return res.status(401).json({ msg: error.message });
   }
+  const { email } = req.body;
+  const usuario = await Usuario.findOne({ email });
+  //Revisar que no este agregado previamente
+  if (existeProyecto.colaboradores.includes(usuario._id)) {
+    const error = new Error("El usuario ya pertenece al proyecto.");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  existeProyecto.colaboradores.push(usuario._id);
+  await existeProyecto.save();
+  res.json({ msg: "Colaborador agregado correctamente" });
   res.json(existeProyecto);
 };
 
-const eliminarColaborador = async (req, res) => {};
+const eliminarColaborador = async (req, res) => {
+  const { id } = req.params;
+  const existeProyecto = await Proyecto.findById(id);
+  if (!existeProyecto) {
+    const error = new Error("Proyecto no encontrado.");
+    return res.status(404).json({ msg: error.message });
+  }
+  if (existeProyecto.creador.toString() !== req.usuario._id.toString()) {
+    const error = new Error("Sin permisos de acceso.");
+    return res.status(401).json({ msg: error.message });
+  }
+
+  existeProyecto.colaboradores.pull(req.body.id);
+  await existeProyecto.save();
+  res.json({ msg: "Colaborador Eliminado correctamente" });
+  res.json(existeProyecto);
+};
+
 const obtenerTareas = async (req, res) => {
   const { id } = req.params;
   const existeProyecto = await Proyecto.findById(id);
