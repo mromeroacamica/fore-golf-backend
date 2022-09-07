@@ -1,13 +1,20 @@
 import Usuario from "../models/Usuario.js";
 import generarId from "../helpers/generarId.js";
 import generarJWT from "../helpers/generarJWT.js";
+import Club from "../models/Club.js";
 
 const registrar = async (req, res) => {
   //Evitar registros duplicados
-  const { email } = req.body;
+  const { email, club } = req.body;
   const existeUsuario = await Usuario.findOne({ email });
+  const existeClub = await Club.findById(club);
   if (existeUsuario) {
     const error = new Error("Usuario ya registrado");
+    return res.status(400).json({ msg: error.message });
+  }
+
+  if (!existeClub && club) {
+    const error = new Error("Club no existente.");
     return res.status(400).json({ msg: error.message });
   }
   try {
@@ -29,15 +36,11 @@ const editarUsuario = async (req, res) => {
   }
   const usuarioToEdit = await Usuario.findById(id);
 
-  if (usuarioToEdit.clubUser) {
-    const error = new Error("No tienes acceso a este usuario.");
-    return res.status(403).json({ msg: error.message });
-  }
   const { email, matricula } = req.body;
   if (usuarioToEdit.matricula !== matricula) {
     const matriculaYaExiste = await Usuario.findOne({ matricula });
     if (matriculaYaExiste) {
-      const error = new Error("Matricula ya registrado");
+      const error = new Error("Matricula ya registrada");
       return res.status(400).json({ msg: error.message });
     }
   }
@@ -48,6 +51,7 @@ const editarUsuario = async (req, res) => {
       return res.status(400).json({ msg: error.message });
     }
   }
+
   usuarioToEdit.nombre = req.body.nombre || usuarioToEdit.nombre;
   usuarioToEdit.apellido = req.body.apellido || usuarioToEdit.apellido;
   usuarioToEdit.email = req.body.email || usuarioToEdit.email;

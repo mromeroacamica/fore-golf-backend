@@ -28,7 +28,6 @@ const usuarioSchema = mongoose.Schema(
       type: String,
       required: false,
       trim: true,
-      unique: true,
     },
     token: {
       type: String,
@@ -38,8 +37,9 @@ const usuarioSchema = mongoose.Schema(
       default: false,
     },
     club: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Club",
+      type: String,
+      default: "",
+      required: false,
     },
     clubUser: {
       type: Boolean,
