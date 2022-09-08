@@ -70,7 +70,7 @@ const nuevoDia = async (req, res) => {
 const obtenerDaysByClubId = async (req, res) => {
   const { id } = req.params;
   try {
-    const days = await Day.find().where("club").equals(id);
+    const days = await Day.find().where("club").equals(id).limit(7);
     res.json(days);
   } catch (error) {
     console.log(error);
@@ -138,4 +138,25 @@ const eliminarDay = async (req, res) => {
   }
 };
 
-export { eliminarDay, editarDay, obtenerDaysByClubId, nuevoDia, obtenerDays };
+const getHorarios = async (req, res) => {
+  // obtengo el id del día que quiero saber los horarios
+  const { id } = req.params;
+  try {
+    const day = await Day.findById(id);
+    if (!day) {
+      const error = new Error("Día no existe.");
+      return res.status(403).json({ msg: error.message });
+    }
+    const horarios = await Horario.find().where("day").equals(day._id);
+    res.json(horarios);
+  } catch (error) {}
+};
+
+export {
+  eliminarDay,
+  editarDay,
+  obtenerDaysByClubId,
+  nuevoDia,
+  obtenerDays,
+  getHorarios,
+};
