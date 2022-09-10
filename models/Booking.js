@@ -19,6 +19,7 @@ const bookingSchema = mongoose.Schema(
     horario: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Horario",
+      unique: true,
     },
     club: {
       type: mongoose.Schema.Types.ObjectId,

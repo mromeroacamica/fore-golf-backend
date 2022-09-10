@@ -11,6 +11,8 @@ import checkAuth from "../middleware/checkAuth.js";
 const router = express.Router();
 
 router.route("/").get(checkAuth, getBookings);
+router.route("/user/:id").get(checkAuth, getBookings);
+router.route("/day/:id").get(checkAuth, getBookings);
 
 router
   .route("/:id")

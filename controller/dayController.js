@@ -40,16 +40,22 @@ const nuevoDia = async (req, res) => {
         const dayOfWeek = newDate.getDay();
         dayToSave.date = newDate;
         dayToSave.dayOfWeek = dayOfWeek;
+        if (dayOfWeek === 1) {
+          dayToSave.clubOpen = false;
+        }
         const dayAlmacenado = await dayToSave.save();
+        let horariosArray = [];
         for (let tee of teeSalidas) {
           for (let horario of tee.horarios) {
-            const newHorario = new Horario({
+            const newHorario = {
               day: dayAlmacenado._id,
               label: horario,
               teeSalida: tee.label,
-            });
-            await newHorario.save();
+            };
+            horariosArray.push(newHorario);
+            // await newHorario.save();
           }
+          await Horario.insertMany(horariosArray);
         }
         res.json(dayAlmacenado);
       } catch (error) {
@@ -63,6 +69,84 @@ const nuevoDia = async (req, res) => {
   } catch (error) {
     console.log(error);
     const error2 = new Error("Hubo un error.");
+    return res.status(404).json({ msg: error2.message });
+  }
+};
+
+const nuevoYear = async (req, res) => {
+  //id del club donde se agrega el año
+  const { id, year } = req.params;
+  const { usuario } = req;
+  if (!usuario.clubUser) {
+    const error = new Error("No tienes acceso a esta acción.");
+    return res.status(403).json({ msg: error.message });
+  }
+  try {
+    const teeSalidas = await TeeSalida.find().where("club").equals(id);
+    const clubDelUsuario = await Club.findById(id);
+    if (!clubDelUsuario) {
+      const error2 = new Error("Club no encontrados.");
+      return res.status(404).json({ msg: error2.message });
+    }
+    for (let i = 0; i < 2; i++) {
+      //obtengo cantidad de dias del mes
+      var lastday = function (y, m) {
+        return new Date(y, m + 1, 0).getDate();
+      };
+      let horariosArray = [];
+      for (let j = 1; j <= lastday(year, i); j++) {
+        let day = j;
+        let month = i;
+        try {
+          const dayToSave = new Day({
+            day: j,
+            month: i,
+            year: year,
+          });
+          try {
+            dayToSave.club = clubDelUsuario._id;
+            try {
+              //Tener en considracion que se comienza desde el mes 0
+              const newDate = new Date(year, month, day);
+              //Tener en consideracion que el dia domingo es el dia 0
+              const dayOfWeek = newDate.getDay();
+              dayToSave.date = newDate;
+              dayToSave.dayOfWeek = dayOfWeek;
+              if (dayOfWeek === 1) {
+                dayToSave.clubOpen = false;
+              }
+              const dayAlmacenado = await dayToSave.save();
+              for (let tee of teeSalidas) {
+                for (let horario of tee.horarios) {
+                  const newHorario = {
+                    day: dayAlmacenado._id,
+                    label: horario,
+                    teeSalida: tee.label,
+                  };
+                  horariosArray.push(newHorario);
+                }
+              }
+              await Horario.insertMany(horariosArray);
+            } catch (error) {
+              console.log(error);
+              const error2 = new Error("Error al crear los elementos.");
+              return res.status(404).json({ msg: error2.message });
+            }
+          } catch (error) {
+            console.log(error);
+            const error2 = new Error("Club no encontrados.");
+            return res.status(404).json({ msg: error2.message });
+          }
+        } catch (error) {
+          console.log(error);
+          const error2 = new Error("Hubo un error.");
+          return res.status(404).json({ msg: error2.message });
+        }
+      }
+    }
+    res.status(201).json({ msg: "Año creado correctamente." });
+  } catch (error) {
+    const error2 = new Error("Hubo un error");
     return res.status(404).json({ msg: error2.message });
   }
 };
@@ -105,6 +189,7 @@ const editarDay = async (req, res) => {
     dayToEdit.day = req.body.day || dayToEdit.day;
     dayToEdit.month = req.body.month || dayToEdit.month;
     dayToEdit.year = req.body.year || dayToEdit.year;
+    dayToEdit.clubOpen = req.body.clubOpen || dayToEdit.clubOpen;
 
     try {
       const dayAlmacenado = await dayToEdit.save();
@@ -116,6 +201,7 @@ const editarDay = async (req, res) => {
     console.log(error);
   }
 };
+
 const eliminarDay = async (req, res) => {
   const { id } = req.params;
   const day = await Day.findById(id);
@@ -159,4 +245,5 @@ export {
   nuevoDia,
   obtenerDays,
   getHorarios,
+  nuevoYear,
 };

@@ -6,6 +6,7 @@ import {
   nuevoDia,
   obtenerDays,
   getHorarios,
+  nuevoYear,
 } from "../controller/dayController.js";
 import checkAuth from "../middleware/checkAuth.js";
 
@@ -19,6 +20,7 @@ router
   .put(checkAuth, editarDay)
   .delete(checkAuth, eliminarDay)
   .post(checkAuth, nuevoDia);
+router.route("/year/:id/:year").post(checkAuth, nuevoYear);
 router.route("/:id/horarios").get(checkAuth, getHorarios);
 
 export default router;

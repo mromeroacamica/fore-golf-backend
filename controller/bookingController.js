@@ -2,6 +2,7 @@ import Club from "../models/Club.js";
 import Day from "../models/Day.js";
 import Usuario from "../models/Usuario.js";
 import Horario from "../models/Horario.js";
+import Booking from "../models/Booking.js";
 
 const getBookings = async (req, res) => {
   try {
@@ -17,12 +18,19 @@ const getBookings = async (req, res) => {
 const newBooking = async (req, res) => {
   //obtengo el id del horario donde voy a agregar la reserva
   const { id } = req.params;
-  const bookingToSave = new Day();
+  const { users } = req.body;
+  const bookingToSave = new Booking();
   try {
-    const usuarioClub = await Club.findById(req.usuario.club);
-    const horarioBooking = await Horario.findById(id);
-    if (!usuarioClub) {
-      const error2 = new Error("Club no encontrados.");
+    const horarioBooking = await Horario.findById(id).populate("day");
+    console.log(horarioBooking);
+    if (horarioBooking.cuposDisponibles < users.length) {
+      const error2 = new Error(
+        "No hay cupos disponibles para esta cantidad de jugadores.",
+      );
+      return res.status(404).json({ msg: error2.message });
+    }
+    if (!horarioBooking.day.clubOpen) {
+      const error2 = new Error("Club cerrado este día.");
       return res.status(404).json({ msg: error2.message });
     }
     if (!horarioBooking) {
@@ -31,19 +39,81 @@ const newBooking = async (req, res) => {
     }
     let playersArray = [];
     for (let user of req.body.users) {
+      const duplicatePlayer = playersArray.find(
+        (x) => x._id.toString() === user,
+      );
+      if (duplicatePlayer) {
+        const error2 = new Error(
+          `Usuario ${duplicatePlayer.nombre} ${duplicatePlayer.apellido} se encuentra duplicado.`,
+        );
+        return res.status(404).json({ msg: error2.message });
+      }
       const player = await Usuario.findById(user);
-      if (player) playersArray.push(player);
+
+      if (!player.confirmado) {
+        const error2 = new Error(
+          `Usuario ${player.nombre} ${player.apellido} no tiene su correo confirmado.`,
+        );
+        return res.status(404).json({ msg: error2.message });
+      }
+      if (player.clubUser) {
+        const error2 = new Error(
+          `Usuario ${player.nombre} ${player.apellido} no tiene acceso a esta función.`,
+        );
+        return res.status(404).json({ msg: error2.message });
+      }
+      if (player) playersArray.push(player._id);
     }
-    bookingToSave.club = usuarioClub._id;
+    //Validacion que no se encuentra ya anotado en una linea del dia
+    if (horarioBooking.day.jugadores) {
+      for (let user of req.body.users) {
+        const duplicatePlayeronDay = horarioBooking.day.jugadores.find(
+          (x) => x.toString() === user,
+        );
+        if (duplicatePlayeronDay) {
+          const duplicatePlayerFound = await Usuario.findById(
+            duplicatePlayeronDay,
+          );
+          const error2 = new Error(
+            `Usuario ${duplicatePlayerFound.nombre} ${duplicatePlayerFound.apellido} ya se encuentra en un horario de este día.`,
+          );
+          return res.status(404).json({ msg: error2.message });
+        }
+      }
+    }
+    const playersOfTheDay = [];
+    playersOfTheDay.push(...horarioBooking.day.jugadores);
+    playersOfTheDay.push(...playersArray);
+    bookingToSave.club = horarioBooking.club;
     bookingToSave.horario = horarioBooking._id;
     bookingToSave.creador = req.usuario._id;
     bookingToSave.jugadores = playersArray;
-
     try {
+      const nuevosCuposDisponibles =
+        horarioBooking.cuposDisponibles - playersArray.length;
       const bookingAlmacenado = await bookingToSave.save();
+      await Horario.updateOne(
+        { _id: id },
+        {
+          $set: {
+            cuposDisponibles: nuevosCuposDisponibles,
+            booking: bookingAlmacenado._id,
+          },
+        },
+      );
+      await Day.updateOne(
+        { _id: horarioBooking.day._id },
+        {
+          $set: {
+            jugadores: playersOfTheDay,
+          },
+        },
+      );
       res.json(bookingAlmacenado);
     } catch (error) {
       console.log(error);
+      const error2 = new Error("Error al guardar la reserva.");
+      return res.status(404).json({ msg: error2.message });
     }
   } catch (error) {
     console.log(error);

@@ -7,6 +7,10 @@ const daySchema = mongoose.Schema(
       ref: "Club",
       required: true,
     },
+    clubOpen: {
+      type: Boolean,
+      default: true,
+    },
     day: {
       type: String,
       required: true,
@@ -29,6 +33,12 @@ const daySchema = mongoose.Schema(
     dayOfWeek: {
       type: String,
     },
+    jugadores: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Usuario",
+      },
+    ],
   },
   {
     timestamps: true,
