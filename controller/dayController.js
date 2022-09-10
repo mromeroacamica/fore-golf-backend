@@ -88,7 +88,7 @@ const nuevoYear = async (req, res) => {
       const error2 = new Error("Club no encontrados.");
       return res.status(404).json({ msg: error2.message });
     }
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 12; i++) {
       //obtengo cantidad de dias del mes
       var lastday = function (y, m) {
         return new Date(y, m + 1, 0).getDate();
