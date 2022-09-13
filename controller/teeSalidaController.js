@@ -34,7 +34,7 @@ const editarTeeSalida = async (req, res) => {
       return res.status(401).json({ msg: error.message });
     }
     teeSalida.label = req.body.label || teeSalida.label;
-    teeSalida.horarios = req.body.horarios || teeSalida.horarios;
+    teeSalida.handicapNecesario = req.body.horarios || teeSalida.horarios;
 
     try {
       const teeSalidaAlmacenado = await teeSalida.save();
@@ -81,7 +81,6 @@ const nuevoConfigBooking = async (req, res) => {
   const { dayOfWeek, club, prioridadSocio, prioridadSocioHastaDia } = req.body;
   const configBooking = new ConfigBooking(req.body);
   const { usuario } = req;
-  console.log(usuario);
   try {
     //Validar que no exista una config para ese dia ya creada en ese club && validar si todos los dias tienen una config
     const configBookingClub = await ConfigBooking.find({
@@ -123,27 +122,67 @@ const nuevoConfigBooking = async (req, res) => {
 
 const editarConfigBooking = async (req, res) => {
   const { id } = req.params;
+  const { dayOfWeek, prioridadSocio, prioridadSocioHastaDia } = req.body;
+
   try {
-    const teeSalida = await TeeSalida.findById(id);
-    if (!teeSalida) {
-      const error = new Error("Tee de Salida no encontrado.");
+    const configBooking = await ConfigBooking.findById(id);
+    if (!configBooking) {
+      const error = new Error("Config Booking no encontrado.");
       return res.status(404).json({ msg: error.message });
     }
-    if (teeSalida.club.toString() !== req.usuario.club.toString()) {
+    //Validar que el dia este entre 0 y 6
+    if (dayOfWeek < 0 || dayOfWeek > 6) {
+      const error2 = new Error(
+        `Error al agregar Config a un día que no existe.`,
+      );
+      return res.status(404).json({ msg: error2.message });
+    }
+    //Validar que no exista una config para ese dia ya creada en ese club && validar si todos los dias tienen una config
+    const configBookingClub = await ConfigBooking.find({
+      $and: [
+        { dayOfWeek: { $eq: dayOfWeek } },
+        { club: { $eq: configBooking.club } },
+        { _id: { $ne: configBooking._id } },
+      ],
+    });
+
+    if (configBookingClub.length > 0 || !configBookingClub) {
+      const error2 = new Error(
+        `Ya tienes una Config de reserva para el día ${dayOfWeek}.`,
+      );
+      return res.status(404).json({ msg: error2.message });
+    }
+    if (
+      configBooking.club.toString() !== req.usuario.club.toString() ||
+      !req.usuario.clubUser
+    ) {
       const error = new Error("Sin permisos de acceso.");
       return res.status(401).json({ msg: error.message });
     }
-    teeSalida.label = req.body.label || teeSalida.label;
-    teeSalida.horarios = req.body.horarios || teeSalida.horarios;
-
+    // Validar que no ponga prioridadSocioHastaDia si esta prioridad en false
+    if (!prioridadSocio && prioridadSocioHastaDia) {
+      const error2 = new Error(
+        `Error al agregar Config con condiciones no compatibles.`,
+      );
+      return res.status(404).json({ msg: error2.message });
+    }
+    console.log("aaaaaaaaaaaa ", configBooking);
+    configBooking.dayOfWeek = req.body.dayOfWeek;
+    configBooking.prioridadSocio = req.body.prioridadSocio;
+    configBooking.prioridadSocioHastaDia =
+      req.body.prioridadSocioHastaDia || configBooking.prioridadSocioHastaDia;
+    configBooking.handicapNecesario = req.body.handicapNecesario;
+    console.log(configBooking);
     try {
-      const teeSalidaAlmacenado = await teeSalida.save();
-      res.json(teeSalidaAlmacenado);
+      const configBookingAlmacenado = await configBooking.save();
+      res.json(configBookingAlmacenado);
     } catch (error) {
       console.log(error);
     }
   } catch (error) {
     console.log(error);
+    const error2 = new Error("Error al obtener algun dato.");
+    return res.status(404).json({ msg: error2.message });
   }
 };
 const eliminarConfigBooking = async (req, res) => {
