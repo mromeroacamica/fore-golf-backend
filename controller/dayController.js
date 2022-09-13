@@ -83,6 +83,10 @@ const nuevoYear = async (req, res) => {
   }
   try {
     const teeSalidas = await TeeSalida.find().where("club").equals(id);
+    if (!teeSalidas || teeSalidas.length === 0) {
+      const error2 = new Error("Club no tiene tee de salidas configurados.");
+      return res.status(404).json({ msg: error2.message });
+    }
     const clubDelUsuario = await Club.findById(id);
     if (!clubDelUsuario) {
       const error2 = new Error("Club no encontrados.");
@@ -93,8 +97,9 @@ const nuevoYear = async (req, res) => {
       var lastday = function (y, m) {
         return new Date(y, m + 1, 0).getDate();
       };
-      let horariosArray = [];
       for (let j = 1; j <= lastday(year, i); j++) {
+        let horariosArray = [];
+
         let day = j;
         let month = i;
         try {
@@ -102,39 +107,34 @@ const nuevoYear = async (req, res) => {
             day: j,
             month: i,
             year: year,
+            club: clubDelUsuario._id,
           });
           try {
-            dayToSave.club = clubDelUsuario._id;
-            try {
-              //Tener en considracion que se comienza desde el mes 0
-              const newDate = new Date(year, month, day);
-              //Tener en consideracion que el dia domingo es el dia 0
-              const dayOfWeek = newDate.getDay();
-              dayToSave.date = newDate;
-              dayToSave.dayOfWeek = dayOfWeek;
-              if (dayOfWeek === 1) {
-                dayToSave.clubOpen = false;
-              }
-              const dayAlmacenado = await dayToSave.save();
-              for (let tee of teeSalidas) {
-                for (let horario of tee.horarios) {
-                  const newHorario = {
-                    day: dayAlmacenado._id,
-                    label: horario,
-                    teeSalida: tee.label,
-                  };
-                  horariosArray.push(newHorario);
-                }
-              }
-              await Horario.insertMany(horariosArray);
-            } catch (error) {
-              console.log(error);
-              const error2 = new Error("Error al crear los elementos.");
-              return res.status(404).json({ msg: error2.message });
+            //Tener en considracion que se comienza desde el mes 0
+            const newDate = new Date(year, month, day);
+            //Tener en consideracion que el dia domingo es el dia 0
+            const dayOfWeek = newDate.getDay();
+            dayToSave.date = newDate;
+            dayToSave.dayOfWeek = dayOfWeek;
+            if (dayOfWeek === 1) {
+              dayToSave.clubOpen = false;
             }
+            const dayAlmacenado = await dayToSave.save();
+            for (let tee of teeSalidas) {
+              for (let horario of tee.horarios) {
+                const newHorario = {
+                  day: dayAlmacenado._id,
+                  label: horario,
+                  teeSalida: tee.label,
+                };
+                horariosArray.push(newHorario);
+              }
+            }
+            console.log("aaaaaaaaaaaaaaaaaaaaaaaaa", horariosArray);
+            await Horario.insertMany(horariosArray);
           } catch (error) {
             console.log(error);
-            const error2 = new Error("Club no encontrados.");
+            const error2 = new Error("Error al crear los elementos.");
             return res.status(404).json({ msg: error2.message });
           }
         } catch (error) {
