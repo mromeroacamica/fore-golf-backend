@@ -44,6 +44,8 @@ const editarTeeSalida = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    const error2 = new Error("Tee de salida no se pudo editar.");
+    return res.status(404).json({ msg: error2.message });
   }
 };
 const eliminarTeeSalida = async (req, res) => {
@@ -71,10 +73,18 @@ const eliminarTeeSalida = async (req, res) => {
   }
 };
 const obtenerConfigBooking = async (req, res) => {
-  const teeSalidas = await TeeSalida.find()
-    .where("club")
-    .equals(req.usuario.club);
-  res.json(teeSalidas);
+  try {
+    const teeSalidas = await ConfigBooking.find()
+      .where("club")
+      .equals(req.usuario.club);
+    res.json(teeSalidas);
+  } catch (error) {
+    console.log(error);
+    const error2 = new Error(
+      "No se pudo encontrar Config Booking para este club.",
+    );
+    return res.status(404).json({ msg: error2.message });
+  }
 };
 
 const nuevoConfigBooking = async (req, res) => {
@@ -166,13 +176,11 @@ const editarConfigBooking = async (req, res) => {
       );
       return res.status(404).json({ msg: error2.message });
     }
-    console.log("aaaaaaaaaaaa ", configBooking);
     configBooking.dayOfWeek = req.body.dayOfWeek;
     configBooking.prioridadSocio = req.body.prioridadSocio;
     configBooking.prioridadSocioHastaDia =
       req.body.prioridadSocioHastaDia || configBooking.prioridadSocioHastaDia;
     configBooking.handicapNecesario = req.body.handicapNecesario;
-    console.log(configBooking);
     try {
       const configBookingAlmacenado = await configBooking.save();
       res.json(configBookingAlmacenado);
