@@ -7,12 +7,14 @@ import {
   obtenerDays,
   getHorarios,
   nuevoYear,
+  obtenerDaysForBooking,
 } from "../controller/dayController.js";
 import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router();
 
 router.route("/").get(checkAuth, obtenerDays);
+router.route("/booking/:id").get(checkAuth, obtenerDaysForBooking);
 
 router
   .route("/:id")

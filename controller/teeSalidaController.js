@@ -115,7 +115,10 @@ const nuevoConfigBooking = async (req, res) => {
       return res.status(404).json({ msg: error2.message });
     }
     // Validar que no ponga prioridadSocioHastaDia si esta prioridad en false
-    if (!prioridadSocio && prioridadSocioHastaDia) {
+    if (
+      (!prioridadSocio && prioridadSocioHastaDia) ||
+      (prioridadSocio && prioridadSocioHastaDia === undefined)
+    ) {
       const error2 = new Error(
         `Error al agregar Config con condiciones no compatibles.`,
       );
