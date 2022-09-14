@@ -196,25 +196,27 @@ const editarConfigBooking = async (req, res) => {
 const eliminarConfigBooking = async (req, res) => {
   const { id } = req.params;
   try {
-    const teeSalida = await TeeSalida.findById(id);
-    if (!teeSalida) {
-      const error = new Error("Tee de Salida no encontrado.");
+    const configBooking = await ConfigBooking.findById(id);
+    if (!configBooking) {
+      const error = new Error("Config Booking no encontrado.");
       return res.status(404).json({ msg: error.message });
     }
-    if (teeSalida.club.toString() !== req.usuario.club.toString()) {
+    if (configBooking.club.toString() !== req.usuario.club.toString()) {
       const error = new Error("Sin permisos de acceso.");
       return res.status(401).json({ msg: error.message });
     }
     try {
-      await teeSalida.deleteOne();
-      res.status(200).json({ msg: "Tee salida eliminado" });
+      await configBooking.deleteOne();
+      res.status(200).json({ msg: "Config Booking eliminado." });
     } catch (error) {
       console.log(error);
+      const error2 = new Error("No se pudo eliminar la Config Booking.");
+      return res.status(404).json({ msg: error2.message });
     }
   } catch (error) {
-    const error2 = new Error("Tee de Salida no encontrado.");
-    return res.status(404).json({ msg: error2.message });
     console.log(error);
+    const error2 = new Error("Config Booking no encontrado.");
+    return res.status(404).json({ msg: error2.message });
   }
 };
 
