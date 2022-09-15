@@ -2,10 +2,54 @@ import Club from "../models/Club.js";
 import Day from "../models/Day.js";
 import TeeSalida from "../models/TeeSalida.js";
 import Horario from "../models/Horario.js";
+import ConfigBooking from "../models/ConfigBooking.js";
 
 const obtenerDays = async (req, res) => {
   try {
     const days = await Day.find().where("club").equals(req.usuario.club);
+    res.json(days);
+  } catch (error) {
+    console.log(error);
+    const error2 = new Error("Días no encontrados.");
+    return res.status(404).json({ msg: error2.message });
+  }
+};
+
+const obtenerDaysForBooking = async (req, res) => {
+  // Id del club donde deseo obtener los dias
+  const { id } = req.params;
+  const { usuario } = req;
+  try {
+    const configBooking = await ConfigBooking.find().where("club").equals(id);
+    const today = new Date();
+    const todayDayOfWeek = today.getDay();
+    let daysDisponibles = [];
+    for (let config of configBooking) {
+      if (
+        (config.handicapNecesario && usuario.matricula) ||
+        !config.handicapNecesario
+      ) {
+        if (!config.prioridadSocio) {
+          daysDisponibles.push(config.dayOfWeek);
+        } else if (config.prioridadSocio && usuario.club.toString() === id) {
+          daysDisponibles.push(config.dayOfWeek);
+        } else if (
+          config.prioridadSocio &&
+          config.dayOfWeek <= todayDayOfWeek
+        ) {
+          daysDisponibles.push(config.dayOfWeek);
+        }
+      }
+    }
+    let conditionQuery = {
+      $and: [
+        { dayOfWeek: { $in: daysDisponibles } },
+        { club: { $eq: id } },
+        { date: { $gt: today } },
+        { clubOpen: { $eq: true } },
+      ],
+    };
+    const days = await Day.find(conditionQuery).limit(10).sort("date");
     res.json(days);
   } catch (error) {
     console.log(error);
@@ -246,4 +290,5 @@ export {
   obtenerDays,
   getHorarios,
   nuevoYear,
+  obtenerDaysForBooking,
 };
