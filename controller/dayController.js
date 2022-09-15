@@ -21,13 +21,8 @@ const obtenerDaysForBooking = async (req, res) => {
   const { usuario } = req;
   try {
     const configBooking = await ConfigBooking.find().where("club").equals(id);
-    console.log(configBooking);
-    const today = new Date();
+    const today = new Date("12/24/2022");
     const todayDayOfWeek = today.getDay();
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth();
-    console.log(today);
-    console.log(todayDayOfWeek);
     let daysDisponibles = [];
     for (let config of configBooking) {
       if (
@@ -46,16 +41,15 @@ const obtenerDaysForBooking = async (req, res) => {
         }
       }
     }
-    console.log("aaaaaaaaaaa ", daysDisponibles);
-    const days = await Day.find({
+    let conditionQuery = {
       $and: [
-        { dayOfWeek: { $eq: dayOfWeek } },
-        { day: { $in: daysDisponibles } },
+        { dayOfWeek: { $in: daysDisponibles } },
         { club: { $eq: id } },
-        { _id: { $ne: configBooking._id } },
+        { date: { $gt: today } },
+        { clubOpen: { $eq: true } },
       ],
-    });
-    return;
+    };
+    const days = await Day.find(conditionQuery).limit(10).sort("date");
     res.json(days);
   } catch (error) {
     console.log(error);
