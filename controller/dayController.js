@@ -21,7 +21,7 @@ const obtenerDaysForBooking = async (req, res) => {
   const { usuario } = req;
   try {
     const configBooking = await ConfigBooking.find().where("club").equals(id);
-    const today = new Date("12/24/2022");
+    const today = new Date();
     const todayDayOfWeek = today.getDay();
     let daysDisponibles = [];
     for (let config of configBooking) {
