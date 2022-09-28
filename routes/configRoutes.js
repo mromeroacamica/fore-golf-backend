@@ -13,13 +13,13 @@ import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router();
 
-router.post("/", checkAuth, nuevoTeeSalida);
-router.get("/", checkAuth, obtenerTeeSalidas);
+router.post("/tee-salida", checkAuth, nuevoTeeSalida);
+router.get("/tee-salida", checkAuth, obtenerTeeSalidas);
 router.get("/config-booking", checkAuth, obtenerConfigBooking);
 router.post("/config-booking", checkAuth, nuevoConfigBooking);
 
 router
-  .route("/:id")
+  .route("/tee-salida/:id")
   .put(checkAuth, editarTeeSalida)
   .delete(checkAuth, eliminarTeeSalida);
 router
