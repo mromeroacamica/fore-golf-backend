@@ -8,6 +8,7 @@ import clubRoutes from "./routes/clubRoutes.js";
 import configRoutes from "./routes/configRoutes.js";
 import dayRoutes from "./routes/dayRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import aagRoutes from "./routes/aagRoutes.js";
 
 const app = express();
 app.use(express.json());
@@ -23,6 +24,7 @@ app.use("/api/club", clubRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/day", dayRoutes);
 app.use("/api/booking", bookingRoutes);
+app.use("/api/aag", aagRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
