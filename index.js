@@ -10,6 +10,7 @@ import dayRoutes from "./routes/dayRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import aagRoutes from "./routes/aagRoutes.js";
 import aagApiKeysRoutes from "./routes/aagApiKeysRoutes.js";
+import torneoRoutes from "./routes/Torneos/torneoRoutes.js";
 
 const app = express();
 app.use(express.json());
@@ -27,6 +28,7 @@ app.use("/api/day", dayRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/aag", aagRoutes);
 app.use("/api/aag-api-keys", aagApiKeysRoutes);
+app.use("/api/torneo", torneoRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

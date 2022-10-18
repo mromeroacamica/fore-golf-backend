@@ -1,4 +1,5 @@
 import TorneoDay from "../../models/Torneo/TorneoDay.js";
+import Club from "../../models/Club.js";
 
 const obtenerTorneoDays = async (req, res) => {
   try {
@@ -16,6 +17,8 @@ const obtenerTorneoDays = async (req, res) => {
 const crearTorneoDay = async (req, res) => {
   try {
     const torneosDay = new TorneoDay(req.body);
+    const userClub = await Club.findById(req.usuario.club);
+    torneosDay.club = userClub;
     const torneosDayAlmacenado = await torneosDay.save();
     res.status(201).json(torneosDayAlmacenado);
   } catch (error) {
