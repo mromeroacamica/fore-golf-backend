@@ -10,7 +10,6 @@ const obtenerTeeSalidas = async (req, res) => {
 
 const nuevoTeeSalida = async (req, res) => {
   const teeSalida = new TeeSalida(req.body);
-  teeSalida.creador = req.usuario._id;
   try {
     const teeSalidaAlmacenado = await teeSalida.save();
     res.json(teeSalidaAlmacenado);
