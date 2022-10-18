@@ -1,5 +1,6 @@
 import axios from "axios";
 import AagApiKeys from "../models/AagApiKeys.js";
+import { getAagApiHeader } from "../services/aagApiServices.js";
 
 const getEnrolledsByMatricula = async (req, res) => {
   const { id } = req.params;
@@ -19,17 +20,6 @@ const getEnrolledsByMatricula = async (req, res) => {
     const error2 = new Error("Error con algún dato ingresado.");
     return res.status(err.response.status).json({ msg: error2.message });
   }
-};
-const getAagApiHeader = async (usuario) => {
-  const aagApiKey = await AagApiKeys.find().where("club").equals(usuario.club);
-  const userKeyString = aagApiKey[0].user + ":" + aagApiKey[0].key;
-  const buffer = Buffer.from(userKeyString);
-  const header = buffer.toString("base64");
-  const headers = {
-    Authorization: "Basic " + header,
-    "Content-Type": "application/json",
-  };
-  return headers;
 };
 const getClubFields = async (req, res) => {
   try {
