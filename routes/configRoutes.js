@@ -8,7 +8,9 @@ import {
   nuevoConfigBooking,
   editarConfigBooking,
   eliminarConfigBooking,
-} from "../controller/teeSalidaController.js";
+  nuevaCategoriaTorneo,
+  obtenerCategorias,
+} from "../controller/configController.js";
 import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router();
@@ -26,5 +28,14 @@ router
   .route("/config-booking/:id")
   .put(checkAuth, editarConfigBooking)
   .delete(checkAuth, eliminarConfigBooking);
+
+router
+  .route("/category")
+  .post(checkAuth, nuevaCategoriaTorneo)
+  .get(checkAuth, obtenerCategorias);
+router
+  .route("/category/:id")
+  .put(checkAuth, eliminarConfigBooking)
+  .get(checkAuth, eliminarConfigBooking);
 
 export default router;

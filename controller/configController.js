@@ -1,5 +1,7 @@
 import TeeSalida from "../models/TeeSalida.js";
 import ConfigBooking from "../models/ConfigBooking.js";
+import ConfigCategoria from "../models/Torneo/ConfigCategoria.js";
+import Club from "../models/Club.js";
 
 const obtenerTeeSalidas = async (req, res) => {
   const teeSalidas = await TeeSalida.find()
@@ -222,6 +224,33 @@ const eliminarConfigBooking = async (req, res) => {
   }
 };
 
+const nuevaCategoriaTorneo = async (req, res) => {
+  try {
+    const { body } = req;
+    const categoria = new ConfigCategoria(body);
+    categoria.club = req.usuario.club;
+    categoria.creador = req.usuario._id;
+    const categoriaAlmacenada = await categoria.save();
+    res.status(201).json(categoriaAlmacenada);
+  } catch (err) {
+    console.log(error);
+    const error2 = new Error("Categoria no se pudo agregar.");
+    return res.status(404).json({ msg: error2.message });
+  }
+};
+const obtenerCategorias = async (req, res) => {
+  try {
+    const categorias = await ConfigCategoria.find()
+      .where("club")
+      .equals(req.usuario.club);
+    res.status(200).json(categorias);
+  } catch (err) {
+    console.log(error);
+    const error2 = new Error("Categoria no se pudo agregar.");
+    return res.status(404).json({ msg: error2.message });
+  }
+};
+
 export {
   eliminarTeeSalida,
   editarTeeSalida,
@@ -231,4 +260,6 @@ export {
   nuevoConfigBooking,
   editarConfigBooking,
   eliminarConfigBooking,
+  nuevaCategoriaTorneo,
+  obtenerCategorias,
 };

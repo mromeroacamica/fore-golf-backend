@@ -12,6 +12,23 @@ router
   .route("/")
   .post(checkAuth, crearTorneoDay)
   .get(checkAuth, obtenerTorneoDays);
+router
+  .route("/torneo")
+  .post(checkAuth, crearTorneoDay)
+  .get(checkAuth, obtenerTorneoDays);
+router
+  .route("/torneo/:id")
+  .post(checkAuth, crearTorneoDay)
+  .get(checkAuth, obtenerTorneoDays);
+
+router
+  .route("/category")
+  .post(checkAuth, crearTorneoDay)
+  .get(checkAuth, obtenerTorneoDays);
+router
+  .route("/category/:id")
+  .put(checkAuth, crearTorneoDay)
+  .get(checkAuth, obtenerTorneoDays);
 
 // router
 //   .route("/:id")
